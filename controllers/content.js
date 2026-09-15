@@ -41,6 +41,16 @@ export async function listMaterials(_req, res, next) {
   }
 }
 
+export async function createUploadUrlHandler(req, res, next) {
+  try {
+    const { key, contentType } = req.body || {};
+    const uploadUrl = await createUploadUrl({ key, contentType });
+    res.status(200).json({ uploadUrl, publicUrl: archiveObjectUrl(key) });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function createMaterial(req, res, next) {
   try {
     const {
