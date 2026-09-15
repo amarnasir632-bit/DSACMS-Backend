@@ -1,12 +1,6 @@
 import crypto from "node:crypto";
 import { getPool } from "../config/database.js";
 
-const DEFAULT_ACCOUNTS = [
-  ["admin", "مدير النظام", "admin", "Admin1234"],
-  ["manager", "مدير المحتوى", "manager", "Manager1234"],
-  ["amarnasir632@gmail.com", "مدير الموقع", "admin", "admin1234"],
-];
-
 function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
   const hash = crypto.scryptSync(password, salt, 64).toString("hex");
   return `${salt}:${hash}`;
@@ -19,21 +13,8 @@ function verifyPassword(password, stored) {
   return crypto.timingSafeEqual(Buffer.from(actual, "hex"), Buffer.from(expected, "hex"));
 }
 
-async function ensureDefaultAccounts() {
-  const pool = getPool();
-  for (const [username, _name, role, password] of DEFAULT_ACCOUNTS) {
-    await pool.query(
-      `INSERT INTO users (username, password_hash, role)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (username) DO NOTHING`,
-      [username, hashPassword(password), role]
-    );
-  }
-}
-
 export async function listUsers(_req, res, next) {
   try {
-    await ensureDefaultAccounts();
     const { rows } = await getPool().query(
       "SELECT id, username, role, created_at FROM users ORDER BY created_at ASC, id ASC"
     );
@@ -62,7 +43,6 @@ export async function login(req, res, next) {
       return;
     }
 
-    await ensureDefaultAccounts();
     const { rows } = await getPool().query(
       "SELECT id, username, password_hash, role FROM users WHERE lower(username) = lower($1) LIMIT 1",
       [String(username).trim()]
@@ -81,6 +61,22 @@ export async function login(req, res, next) {
         status: "active",
       },
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteUser(req, res, next) {
+  try {
+    const { rowCount } = await getPool().query(
+      "DELETE FROM users WHERE id = $1",
+      [req.params.id]
+    );
+    if (!rowCount) {
+      res.status(404).json({ error: "user not found" });
+      return;
+    }
+    res.status(204).end();
   } catch (error) {
     next(error);
   }
