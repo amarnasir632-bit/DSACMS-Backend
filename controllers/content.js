@@ -50,7 +50,7 @@ export async function listMaterials(_req, res, next) {
     const { rows } = await getPool().query(`
       SELECT m.id, m.title, m.description, m.author, m.category_id,
         c.name AS category_name, m.audio_url, m.document_url, m.content_type,
-        m.body, m.keywords, m.duration_seconds, m.status, m.archive_status, m.archive_url, m.created_at
+        m.body, m.keywords, m.duration_seconds, m.status, m.created_at
       FROM materials m LEFT JOIN categories c ON c.id = m.category_id
       WHERE m.status = 'published' ORDER BY m.created_at DESC
     `);
