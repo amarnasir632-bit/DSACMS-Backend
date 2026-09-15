@@ -31,6 +31,29 @@ async function ensureDefaultAccounts() {
   }
 }
 
+export async function listUsers(_req, res, next) {
+  try {
+    await ensureDefaultAccounts();
+    const { rows } = await getPool().query(
+      "SELECT id, username, role, created_at FROM users ORDER BY created_at ASC, id ASC"
+    );
+    res.json(rows.map((user) => ({
+      ...user,
+      id: String(user.id),
+      name: user.username === "admin"
+        ? "مدير النظام"
+        : user.username === "manager"
+          ? "مدير المحتوى"
+          : user.username === "amarnasir632@gmail.com"
+            ? "مدير الموقع"
+            : user.username,
+      status: "active",
+    })));
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function login(req, res, next) {
   try {
     const { username, password } = req.body || {};
