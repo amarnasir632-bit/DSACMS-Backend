@@ -12,6 +12,10 @@ this repository as its own Vercel project. The current foundation provides:
 
 - A Vercel-compatible Express entry point.
 - `GET /api/status` for deployment and uptime checks.
+- `GET /api/categories` for published category metadata.
+- `GET /api/materials` for published materials joined with category names.
+- `POST /api/materials` for creating material records and optionally requesting
+  an Internet Archive signed upload URL.
 - A PostgreSQL schema for categories, materials, and users.
 - A lazy PostgreSQL connection pool for serverless reuse.
 - Internet Archive S3-compatible signed upload URL utilities.
@@ -107,6 +111,35 @@ http://localhost:3000/api/status
 The API does not buffer large media files. The `createUploadUrl` utility
 generates a short-lived signed PUT URL so the frontend can upload audio or PDF
 content directly to Internet Archive.
+
+## API examples
+
+Fetch categories and materials:
+
+```bash
+curl https://YOUR_PROJECT.vercel.app/api/categories
+curl https://YOUR_PROJECT.vercel.app/api/materials
+```
+
+Create an article:
+
+```bash
+curl -X POST https://YOUR_PROJECT.vercel.app/api/materials \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "title": "عنوان المقال",
+    "description": "وصف مختصر",
+    "contentType": "article",
+    "body": ["الفقرة الأولى"],
+    "keywords": ["علم"],
+    "categoryId": 1
+  }'
+```
+
+For an audio or PDF upload, include an `upload` object with `key` and
+`contentType`. The response contains a short-lived `uploadUrl`; upload the
+binary directly to that URL, then persist the returned material URL in the
+client workflow.
 
 ## Vercel deployment
 
