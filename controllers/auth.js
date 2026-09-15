@@ -38,6 +38,25 @@ export async function login(req, res, next) {
       res.status(400).json({ error: "username and password are required" });
       return;
     }
+
+    export async function createUser(req, res, next) {
+      try {
+        const { username, password, role = "viewer" } = req.body || {};
+        if (!username || !password || !["admin", "manager", "viewer"].includes(role)) {
+          res.status(400).json({ error: "username, password and a valid role are required" });
+          return;
+        }
+        const { rows } = await getPool().query(
+          `INSERT INTO users (username, password_hash, role)
+           VALUES ($1, $2, $3)
+           RETURNING id, username, role, created_at`,
+          [String(username).trim().toLowerCase(), hashPassword(password), role]
+        );
+        res.status(201).json(rows[0]);
+      } catch (error) {
+        next(error);
+      }
+    }
     await ensureDefaultAccounts();
     const { rows } = await getPool().query(
       "SELECT id, username, password_hash, role FROM users WHERE lower(username) = lower($1) LIMIT 1",
