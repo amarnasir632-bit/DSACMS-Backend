@@ -48,3 +48,28 @@ export function archiveObjectUrl(key) {
     .map(encodeURIComponent)
     .join("/")}`;
 }
+
+export async function uploadArchiveFile({ key, contentType, body }) {
+  if (!key || !contentType || !body) {
+    throw new TypeError("key, contentType and body are required");
+  }
+  requireStorageConfig();
+  const response = await fetch(`${endpoint}/${encodeURIComponent(process.env.IA_BUCKET.trim())}/${key
+    .split("/")
+    .map(encodeURIComponent)
+    .join("/")}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `LOW ${process.env.IA_ACCESS_KEY}:${process.env.IA_SECRET_KEY}`,
+      "Content-Type": contentType,
+      "x-amz-auto-make-bucket": "1",
+    },
+    body,
+  });
+  if (!response.ok) {
+    const detail = await response.text();
+    const error = new Error(`Internet Archive upload failed (${response.status}): ${detail.slice(0, 240)}`);
+    error.statusCode = response.status;
+    throw error;
+  }
+}

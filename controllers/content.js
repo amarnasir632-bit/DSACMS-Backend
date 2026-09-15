@@ -1,5 +1,5 @@
 import { getPool } from "../config/database.js";
-import { archiveObjectUrl, createUploadUrl } from "../utils/storage.js";
+import { archiveObjectUrl, createUploadUrl, uploadArchiveFile } from "../utils/storage.js";
 
 export async function listCategories(_req, res, next) {
   try {
@@ -67,6 +67,16 @@ export async function createUploadUrlHandler(req, res, next) {
     const { key, contentType } = req.body || {};
     const uploadUrl = await createUploadUrl({ key, contentType });
     res.status(200).json({ uploadUrl, publicUrl: archiveObjectUrl(key) });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function uploadFileHandler(req, res, next) {
+  try {
+    const { key, contentType } = req.query;
+    await uploadArchiveFile({ key, contentType, body: req.body });
+    res.status(201).json({ publicUrl: archiveObjectUrl(key) });
   } catch (error) {
     next(error);
   }

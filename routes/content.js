@@ -1,4 +1,5 @@
 import { Router } from "express";
+import express from "express";
 import {
   createMaterial,
   createUploadUrlHandler,
@@ -6,6 +7,7 @@ import {
   deleteCategory,
   listCategories,
   listMaterials,
+  uploadFileHandler,
   updateMaterialStatus,
   deleteMaterial,
 } from "../controllers/content.js";
@@ -17,6 +19,7 @@ router.post("/categories", createCategory);
 router.delete("/categories/:id", deleteCategory);
 router.get("/materials", listMaterials);
 router.post("/uploads/sign", createUploadUrlHandler);
+router.put("/uploads", express.raw({ type: "*/*", limit: "100mb" }), uploadFileHandler);
 router.post("/materials", createMaterial);
 router.patch("/materials/:id/status", updateMaterialStatus);
 router.delete("/materials/:id", deleteMaterial);
