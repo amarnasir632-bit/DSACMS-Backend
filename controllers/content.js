@@ -1,10 +1,12 @@
 import { getPool } from "../config/database.js";
+import { Readable } from "node:stream";
 
 function normalizeDirectUrl(value, fieldName, { required = false } = {}) {
   if (value == null || String(value).trim() === "") {
     if (required) throw new TypeError(`${fieldName} is required`);
     return null;
   }
+
   let parsed;
   try { parsed = new URL(String(value).trim()); } catch (_) {
     throw new TypeError(`${fieldName} must be a valid URL`);
@@ -13,6 +15,37 @@ function normalizeDirectUrl(value, fieldName, { required = false } = {}) {
     throw new TypeError(`${fieldName} must use http or https`);
   }
   return parsed.toString();
+}
+
+function downloadFilename(url) {
+  const name = decodeURIComponent(new URL(url).pathname.split("/").pop() || "download");
+  return name.replace(/[\r\n"]/g, "").trim() || "download";
+}
+
+export async function downloadMediaHandler(req, res, next) {
+  try {
+    const target = String(req.query.url || "").trim();
+    let url;
+    try { url = new URL(target); } catch (_) {
+      res.status(400).json({ error: "a valid media URL is required" }); return;
+    }
+    if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) {
+      res.status(400).json({ error: "only public http and https media URLs are supported" }); return;
+    }
+
+    const response = await fetch(url, { redirect: "follow" });
+    if (!response.ok || !response.body) {
+      res.status(response.status || 502).json({ error: "unable to fetch the media file" }); return;
+    }
+
+    const filename = downloadFilename(response.url || url.toString());
+    res.set({
+      "Content-Type": response.headers.get("content-type") || "application/octet-stream",
+      "Content-Disposition": `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
+      "Cache-Control": "private, max-age=3600",
+    });
+    Readable.fromWeb(response.body).pipe(res);
+  } catch (error) { next(error); }
 }
 
 export async function listCategories(_req, res, next) {
