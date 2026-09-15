@@ -1,0 +1,25 @@
+{
+  "name": "dsacms-archive-worker",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-15",
+  "r2_buckets": [
+    { "binding": "MEDIA_BUCKET", "bucket_name": "dsacms-media" }
+  ],
+  "queues": {
+    "producers": [
+      { "queue": "dsacms-archive-queue", "binding": "ARCHIVE_QUEUE" }
+    ],
+    "consumers": [
+      {
+        "queue": "dsacms-archive-queue",
+        "max_batch_size": 1,
+        "max_batch_timeout": 5,
+        "max_retries": 10,
+        "dead_letter_queue": "dsacms-archive-dlq"
+      }
+    ]
+  },
+  "vars": {
+    "ARCHIVE_ENDPOINT": "https://s3.us.archive.org"
+  }
+}

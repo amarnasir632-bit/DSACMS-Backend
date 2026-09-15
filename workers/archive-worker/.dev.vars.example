@@ -1,0 +1,7 @@
+IA_BUCKET=your-internet-archive-identifier
+IA_ACCESS_KEY=replace-me
+IA_SECRET_KEY=replace-me
+API_ORIGIN=https://dsacms-backend.vercel.app
+INTERNAL_CALLBACK_TOKEN=replace-me
+PRODUCER_TOKEN=replace-me
+ARCHIVE_BUCKET_PREFIX=dsacms
