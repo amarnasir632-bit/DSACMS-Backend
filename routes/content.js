@@ -6,6 +6,7 @@ import {
   listCategories,
   listMaterials,
   archiveStatusHandler,
+  updateMaterial,
   updateMaterialStatus,
   deleteMaterial,
   downloadMediaHandler,
@@ -20,6 +21,7 @@ router.get("/materials", listMaterials);
 router.get("/download", downloadMediaHandler);
 router.post("/internal/archive-status", archiveStatusHandler);
 router.post("/materials", createMaterial);
+router.put("/materials/:id", updateMaterial);
 router.patch("/materials/:id/status", updateMaterialStatus);
 router.delete("/materials/:id", deleteMaterial);
 

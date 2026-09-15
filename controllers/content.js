@@ -151,6 +151,43 @@ export async function createMaterial(req, res, next) {
   } catch (error) { next(error); }
 }
 
+export async function updateMaterial(req, res, next) {
+  try {
+    const {
+      title, description = "", author = "", categoryId = null,
+      audioUrl = null, documentUrl = null, contentType = "audio",
+      body = [], keywords = [], durationSeconds = 0, status = "published",
+    } = req.body;
+    if (!title || !["audio", "article", "book"].includes(contentType)) {
+      res.status(400).json({ error: "title and a valid contentType are required" }); return;
+    }
+
+    let resolvedAudioUrl;
+    let resolvedDocumentUrl;
+    try {
+      resolvedAudioUrl = normalizeDirectUrl(audioUrl, "audioUrl", { required: contentType === "audio" });
+      resolvedDocumentUrl = normalizeDirectUrl(documentUrl, "documentUrl", { required: contentType === "book" });
+    } catch (error) {
+      res.status(400).json({ error: error.message }); return;
+    }
+
+    const { rows } = await getPool().query(
+      `UPDATE materials SET
+        title = $1, description = $2, author = $3, category_id = $4,
+        audio_url = $5, document_url = $6, content_type = $7,
+        body = $8::jsonb, keywords = $9::jsonb, duration_seconds = $10, status = $11
+       WHERE id = $12
+       RETURNING *`,
+      [title, description, author, categoryId, resolvedAudioUrl, resolvedDocumentUrl,
+        contentType, JSON.stringify(Array.isArray(body) ? body : []),
+        JSON.stringify(Array.isArray(keywords) ? keywords : []), Number(durationSeconds) || 0,
+        status, req.params.id]
+    );
+    if (!rows[0]) { res.status(404).json({ error: "material not found" }); return; }
+    res.json({ material: rows[0] });
+  } catch (error) { next(error); }
+}
+
 export async function updateMaterialStatus(req, res, next) {
   try {
     const { status } = req.body || {};
