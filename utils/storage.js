@@ -7,15 +7,16 @@ export const archiveStorage = new S3Client({
   endpoint,
   region: process.env.IA_REGION || "us-east-1",
   credentials: {
-    accessKeyId: process.env.IA_ACCESS_KEY || "",
-    secretAccessKey: process.env.IA_SECRET_KEY || "",
+    // إضافة trim() لحذف أي مسافات منسوجة بالخطأ من Vercel
+    accessKeyId: (process.env.IA_ACCESS_KEY || "").trim(),
+    secretAccessKey: (process.env.IA_SECRET_KEY || "").trim(),
   },
   forcePathStyle: true,
 });
 
 function requireStorageConfig() {
   const required = ["IA_ACCESS_KEY", "IA_SECRET_KEY", "IA_BUCKET"];
-  const missing = required.filter((name) => !process.env[name]);
+  const missing = required.filter((name) => !process.env[name] || process.env[name].trim() === "");
   if (missing.length > 0) {
     throw new Error(`Internet Archive storage is not configured: ${missing.join(", ")}`);
   }
@@ -29,7 +30,7 @@ export async function createUploadUrl({ key, contentType, expiresIn = 900 }) {
   requireStorageConfig();
 
   const command = new PutObjectCommand({
-    Bucket: process.env.IA_BUCKET,
+    Bucket: process.env.IA_BUCKET.trim(),
     Key: key,
     ContentType: contentType,
   });
@@ -42,7 +43,7 @@ export function archiveObjectUrl(key) {
     throw new TypeError("key is required");
   }
   requireStorageConfig();
-  return `${endpoint}/${encodeURIComponent(process.env.IA_BUCKET)}/${key
+  return `${endpoint}/${encodeURIComponent(process.env.IA_BUCKET.trim())}/${key
     .split("/")
     .map(encodeURIComponent)
     .join("/")}`;
