@@ -12,6 +12,7 @@ export function getPool() {
 
     const databaseUrl = new URL(process.env.DATABASE_URL);
     databaseUrl.searchParams.delete("pgbouncer");
+    databaseUrl.searchParams.delete("sslmode");
 
     pool = new Pool({
       connectionString: databaseUrl.toString(),
