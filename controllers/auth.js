@@ -68,6 +68,10 @@ export async function login(req, res, next) {
 
 export async function deleteUser(req, res, next) {
   try {
+    if (!/^\d+$/.test(String(req.params.id))) {
+      res.status(400).json({ error: "a numeric user id is required" });
+      return;
+    }
     const { rowCount } = await getPool().query(
       "DELETE FROM users WHERE id = $1",
       [req.params.id]
