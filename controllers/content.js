@@ -52,7 +52,7 @@ export async function listMaterials(_req, res, next) {
         c.name AS category_name, m.audio_url, m.document_url, m.content_type,
         m.body, m.keywords, m.duration_seconds, m.status, m.created_at
       FROM materials m LEFT JOIN categories c ON c.id = m.category_id
-      WHERE m.status = 'published' ORDER BY m.created_at DESC
+      ORDER BY m.created_at DESC
     `);
     res.json(rows);
   } catch (error) { next(error); }
