@@ -5,7 +5,12 @@ import contentRoutes from "../routes/content.js";
 import authRoutes from "../routes/auth.js";
 
 const app = express();
-const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:5500")
+const allowedOrigins = [
+  "https://dsacms-frontend.vercel.app",
+  "http://localhost:5500",
+  "http://127.0.0.1:5500",
+  ...(process.env.FRONTEND_ORIGIN || "").split(","),
+]
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
@@ -41,7 +46,11 @@ app.use((err, _req, res, _next) => {
   }
 
   console.error(err);
-  res.status(500).json({ error: "Internal server error" });
+  const status = Number.isInteger(err.statusCode) ? err.statusCode : 500;
+  res.status(status).json({
+    error: err.message || "Internal server error",
+    status,
+  });
 });
 
 export default app;
