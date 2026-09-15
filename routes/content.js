@@ -6,6 +6,8 @@ import {
   deleteCategory,
   listCategories,
   listMaterials,
+  updateMaterialStatus,
+  deleteMaterial,
 } from "../controllers/content.js";
 
 const router = Router();
@@ -16,5 +18,7 @@ router.delete("/categories/:id", deleteCategory);
 router.get("/materials", listMaterials);
 router.post("/uploads/sign", createUploadUrlHandler);
 router.post("/materials", createMaterial);
+router.patch("/materials/:id/status", updateMaterialStatus);
+router.delete("/materials/:id", deleteMaterial);
 
 export default router;
