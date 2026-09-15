@@ -10,8 +10,11 @@ export function getPool() {
       throw new Error("DATABASE_URL is not configured");
     }
 
+    const databaseUrl = new URL(process.env.DATABASE_URL);
+    databaseUrl.searchParams.delete("pgbouncer");
+
     pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: databaseUrl.toString(),
       max: 5,
       idleTimeoutMillis: 10_000,
       connectionTimeoutMillis: 5_000,
