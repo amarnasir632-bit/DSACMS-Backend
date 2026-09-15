@@ -2,6 +2,7 @@ import "dotenv/config";
 import cors from "cors";
 import express from "express";
 import contentRoutes from "../routes/content.js";
+import authRoutes from "../routes/auth.js";
 
 const app = express();
 const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:5500")
@@ -22,6 +23,7 @@ app.use(
 );
 app.use(express.json({ limit: "1mb" }));
 app.use("/api", contentRoutes);
+app.use("/api/auth", authRoutes);
 
 app.get("/api/status", (_req, res) => {
   res.status(200).json({

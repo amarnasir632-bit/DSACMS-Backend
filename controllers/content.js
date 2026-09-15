@@ -12,6 +12,40 @@ export async function listCategories(_req, res, next) {
   }
 }
 
+export async function createCategory(req, res, next) {
+  try {
+    const { name, description = "" } = req.body || {};
+    if (!name || !String(name).trim()) {
+      res.status(400).json({ error: "name is required" });
+      return;
+    }
+    const { rows } = await getPool().query(
+      "INSERT INTO categories (name, description) VALUES ($1, $2) RETURNING id, name, description, created_at",
+      [String(name).trim(), description]
+    );
+    res.status(201).json(rows[0]);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteCategory(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { rowCount } = await getPool().query(
+      "DELETE FROM categories WHERE id = $1 AND NOT EXISTS (SELECT 1 FROM materials WHERE category_id = $1)",
+      [id]
+    );
+    if (!rowCount) {
+      res.status(409).json({ error: "category is missing or still has materials" });
+      return;
+    }
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function listMaterials(_req, res, next) {
   try {
     const { rows } = await getPool().query(`
