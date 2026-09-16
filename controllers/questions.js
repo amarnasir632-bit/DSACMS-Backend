@@ -155,3 +155,23 @@ export async function rejectQuestion(req, res, next) {
     next(error);
   }
 }
+
+export async function deleteQuestion(req, res, next) {
+  try {
+    if (!/^\d+$/.test(String(req.params.id))) {
+      res.status(400).json({ error: "a numeric question id is required" });
+      return;
+    }
+    const { rowCount } = await getPool().query(
+      "DELETE FROM questions WHERE id = $1",
+      [req.params.id]
+    );
+    if (!rowCount) {
+      res.status(404).json({ error: "question not found" });
+      return;
+    }
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+}

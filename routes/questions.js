@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   answerQuestion,
   createQuestion,
+  deleteQuestion,
   editAnswer,
   listAnsweredQuestions,
   listPendingQuestions,
@@ -18,5 +19,6 @@ router.get("/sheikh/answered", requireAuth, requireRole("SHEIKH"), listAnsweredQ
 router.patch("/sheikh/:id/answer", requireAuth, requireRole("SHEIKH"), answerQuestion);
 router.patch("/sheikh/:id/edit", requireAuth, requireRole("SHEIKH"), editAnswer);
 router.patch("/sheikh/:id/reject", requireAuth, requireRole("SHEIKH"), rejectQuestion);
+router.delete("/sheikh/:id", requireAuth, requireRole("SHEIKH"), deleteQuestion);
 
 export default router;

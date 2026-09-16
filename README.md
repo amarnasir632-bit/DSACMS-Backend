@@ -30,7 +30,7 @@ PostgreSQL:
    خمس دقائق.
 3. لا يعرض API العام إلا الأسئلة ذات الحالة `ANSWERED`.
 4. يستطيع المستخدم ذو الدور `SHEIKH` عرض المعلّق، نشر الإجابة، رفض السؤال،
-   وتعديل الإجابات المنشورة.
+   تعديل الإجابات المنشورة، وحذف أي سؤال نهائيًا عبر `DELETE`.
 
 تستخدم مسارات الشيخ توكن جلسة موقّعاً بـ `AUTH_SECRET` مع
 `requireAuth` و`requireRole("SHEIKH")`. لا تُحفظ كلمات المرور في الواجهة أو
@@ -52,6 +52,7 @@ PostgreSQL:
 | `PATCH /api/questions/sheikh/:id/answer` | نشر إجابة جديدة للشيخ فقط |
 | `PATCH /api/questions/sheikh/:id/edit` | تعديل إجابة منشورة للشيخ فقط |
 | `PATCH /api/questions/sheikh/:id/reject` | رفض سؤال معلق للشيخ فقط |
+| `DELETE /api/questions/sheikh/:id` | حذف سؤال نهائيًا (مجاب أو معلّق) للشيخ فقط |
 | `PATCH /api/materials/:id/status` | تغيير حالة المادة |
 | `DELETE /api/materials/:id` | حذف المادة من PostgreSQL |
 | `POST /api/internal/archive-status` | callback داخلي من Worker |
