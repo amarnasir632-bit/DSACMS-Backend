@@ -108,3 +108,53 @@ export async function createUser(req, res, next) {
     next(error);
   }
 }
+
+export async function updateUser(req, res, next) {
+  try {
+    if (!/^\d+$/.test(String(req.params.id))) {
+      res.status(400).json({ error: "a numeric user id is required" });
+      return;
+    }
+
+    const { password, role } = req.body || {};
+    const validRoles = ["admin", "manager", "viewer", "SHEIKH"];
+    if (password === undefined && role === undefined) {
+      res.status(400).json({ error: "password or role is required" });
+      return;
+    }
+    if (password !== undefined && (!String(password) || String(password).length > 200)) {
+      res.status(400).json({ error: "password must be between 1 and 200 characters" });
+      return;
+    }
+    if (role !== undefined && !validRoles.includes(role)) {
+      res.status(400).json({ error: "a valid role is required" });
+      return;
+    }
+
+    const updates = [];
+    const values = [];
+    if (password !== undefined) {
+      values.push(hashPassword(String(password)));
+      updates.push(`password_hash = $${values.length}`);
+    }
+    if (role !== undefined) {
+      values.push(role);
+      updates.push(`role = $${values.length}`);
+    }
+    values.push(req.params.id);
+
+    const { rows } = await getPool().query(
+      `UPDATE users SET ${updates.join(", ")}
+       WHERE id = $${values.length}
+       RETURNING id, username, role, created_at`,
+      values
+    );
+    if (!rows[0]) {
+      res.status(404).json({ error: "user not found" });
+      return;
+    }
+    res.json(rows[0]);
+  } catch (error) {
+    next(error);
+  }
+}
