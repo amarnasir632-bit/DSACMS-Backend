@@ -14,6 +14,13 @@
 | `GET /api/materials` | جلب المواد المنشورة |
 | `POST /api/materials` | إنشاء مادة |
 | `POST /api/auth/login` | تسجيل الدخول المركزي |
+| `GET /api/questions` | عرض الأسئلة المجاب عنها فقط |
+| `POST /api/questions` | إرسال سؤال عام محمي بـ Honeypot وRate Limit |
+| `GET /api/questions/sheikh/pending` | أسئلة معلقة للشيخ فقط |
+| `GET /api/questions/sheikh/answered` | أرشيف الإجابات للشيخ فقط |
+| `PATCH /api/questions/sheikh/:id/answer` | نشر إجابة جديدة للشيخ فقط |
+| `PATCH /api/questions/sheikh/:id/edit` | تعديل إجابة منشورة للشيخ فقط |
+| `PATCH /api/questions/sheikh/:id/reject` | رفض سؤال معلق للشيخ فقط |
 | `PATCH /api/materials/:id/status` | تغيير حالة المادة |
 | `DELETE /api/materials/:id` | حذف المادة من PostgreSQL |
 | `POST /api/internal/archive-status` | callback داخلي من Worker |
@@ -39,8 +46,10 @@ npm run dev
 psql "$DATABASE_URL" -f database/schema.sql
 ```
 
-المخطط قابل لإعادة التشغيل ويضيف أعمدة دورة حياة الأرشفة باستخدام
-`ADD COLUMN IF NOT EXISTS`. لا تضع قيم الأسرار في `schema.sql`.
+المخطط قابل لإعادة التشغيل ويضيف جدول `questions` ودور `SHEIKH` وقيود الحالة
+باستخدام أوامر آمنة لإعادة التشغيل. نشر Vercel للكود لا ينفذ SQL تلقائياً،
+لذلك يجب تطبيق المخطط على قاعدة الإنتاج بعد كل تغيير في قاعدة البيانات. لا
+تضع قيم الأسرار في `schema.sql`.
 
 ## متغيرات البيئة
 
@@ -48,6 +57,7 @@ psql "$DATABASE_URL" -f database/schema.sql
 | --- | --- |
 | `FRONTEND_ORIGIN` | origins المسموح لها بطلب API، مفصولة بفواصل |
 | `DATABASE_URL` | اتصال PostgreSQL |
+| `AUTH_SECRET` | سر توقيع توكنات الجلسات (مطلوب في الإنتاج) |
 | `IA_ACCESS_KEY` / `IA_SECRET_KEY` | مفاتيح Internet Archive |
 | `IA_BUCKET` | معرف عنصر Internet Archive |
 | `IA_ENDPOINT` | افتراضيًا `https://s3.us.archive.org` |
@@ -84,7 +94,8 @@ UPLOADING -> UPLOADED_TO_R2 -> ARCHIVE_QUEUED -> ARCHIVING -> ARCHIVED
 1. اربط هذا المجلد كمشروع Vercel مستقل.
 2. أضف متغيرات البيئة في إعدادات Vercel.
 3. طبّق `database/schema.sql` على PostgreSQL.
-4. انشر:
+4. أنشئ حساب الشيخ بدور `SHEIKH` عبر مسار المستخدمين أو SQL آمن.
+5. انشر:
 
 ```bash
 npx vercel --prod
