@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { getPool } from "../config/database.js";
+import { createSessionToken } from "../middleware/auth.js";
 
 function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
   const hash = crypto.scryptSync(password, salt, 64).toString("hex");
@@ -13,6 +14,14 @@ function verifyPassword(password, stored) {
   return crypto.timingSafeEqual(Buffer.from(actual, "hex"), Buffer.from(expected, "hex"));
 }
 
+function displayName(username, role) {
+  if (role === "SHEIKH") return "الشيخ";
+  if (username === "admin") return "مدير النظام";
+  if (username === "manager") return "مدير المحتوى";
+  if (username === "amarnasir632@gmail.com") return "مدير الموقع";
+  return username;
+}
+
 export async function listUsers(_req, res, next) {
   try {
     const { rows } = await getPool().query(
@@ -21,13 +30,7 @@ export async function listUsers(_req, res, next) {
     res.json(rows.map((user) => ({
       ...user,
       id: String(user.id),
-      name: user.username === "admin"
-        ? "مدير النظام"
-        : user.username === "manager"
-          ? "مدير المحتوى"
-          : user.username === "amarnasir632@gmail.com"
-            ? "مدير الموقع"
-            : user.username,
+      name: displayName(user.username, user.role),
       status: "active",
     })));
   } catch (error) {
@@ -56,10 +59,11 @@ export async function login(req, res, next) {
       user: {
         id: String(user.id),
         username: user.username,
-        name: user.username === "admin" ? "مدير النظام" : user.username === "manager" ? "مدير المحتوى" : "مدير الموقع",
+        name: displayName(user.username, user.role),
         role: user.role,
         status: "active",
       },
+      token: createSessionToken(user),
     });
   } catch (error) {
     next(error);
@@ -89,7 +93,7 @@ export async function deleteUser(req, res, next) {
 export async function createUser(req, res, next) {
   try {
     const { username, password, role = "viewer" } = req.body || {};
-    if (!username || !password || !["admin", "manager", "viewer"].includes(role)) {
+    if (!username || !password || !["admin", "manager", "viewer", "SHEIKH"].includes(role)) {
       res.status(400).json({ error: "username, password and a valid role are required" });
       return;
     }

@@ -60,5 +60,23 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   role VARCHAR(30) NOT NULL DEFAULT 'viewer',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  CONSTRAINT users_role_check CHECK (role IN ('admin', 'manager', 'viewer'))
+  CONSTRAINT users_role_check CHECK (role IN ('admin', 'manager', 'viewer', 'SHEIKH'))
 );
+
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('admin', 'manager', 'viewer', 'SHEIKH'));
+
+CREATE TABLE IF NOT EXISTS questions (
+  id BIGSERIAL PRIMARY KEY,
+  asker_name VARCHAR(255) DEFAULT 'فاعل خير',
+  question_text TEXT NOT NULL,
+  answer_text TEXT,
+  status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+  sheikh_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT questions_status_check CHECK (status IN ('PENDING', 'ANSWERED', 'REJECTED'))
+);
+
+CREATE INDEX IF NOT EXISTS questions_status_created_at_idx
+  ON questions(status, created_at DESC);

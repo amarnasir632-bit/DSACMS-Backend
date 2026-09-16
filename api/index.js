@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import contentRoutes from "../routes/content.js";
 import authRoutes from "../routes/auth.js";
+import questionRoutes from "../routes/questions.js";
 
 const app = express();
 const allowedOrigins = [
@@ -28,6 +29,7 @@ app.use(
 app.use(express.json({ limit: "1mb" }));
 app.use("/api", contentRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/questions", questionRoutes);
 
 app.get("/api/status", (_req, res) => {
   res.status(200).json({
