@@ -56,7 +56,9 @@ PostgreSQL:
 | `PATCH /api/materials/:id/status` | تغيير حالة المادة |
 | `DELETE /api/materials/:id` | حذف المادة من PostgreSQL |
 | `POST /api/internal/archive-status` | callback داخلي من Worker |
+## 🛠️ الصيانة والأتمتة (Automation)
 
+- **Supabase Keep-Alive:** تم إضافة خدمة أتمتة عبر GitHub Actions (`.github/workflows/keep_alive.yml`) تعمل تلقائياً كل 3 أيام لإرسال استعلام خفيف لقاعدة بيانات Supabase لتفادي إيقاف المشروع تلقائياً (Auto-pause) في الخطة المجانية.
 ## المتطلبات
 
 - Node.js 20 أو أحدث.
