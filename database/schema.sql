@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS users (
   id BIGSERIAL PRIMARY KEY,
   username VARCHAR(100) NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
+  must_change_password BOOLEAN NOT NULL DEFAULT FALSE,
   role VARCHAR(30) NOT NULL DEFAULT 'viewer',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT users_role_check CHECK (role IN ('admin', 'manager', 'viewer', 'SHEIKH'))
@@ -65,6 +66,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
 ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('admin', 'manager', 'viewer', 'SHEIKH'));
+ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN NOT NULL DEFAULT FALSE;
 
 CREATE TABLE IF NOT EXISTS questions (
   id BIGSERIAL PRIMARY KEY,

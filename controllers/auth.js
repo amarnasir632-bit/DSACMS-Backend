@@ -47,7 +47,7 @@ export async function login(req, res, next) {
     }
 
     const { rows } = await getPool().query(
-      "SELECT id, username, password_hash, role FROM users WHERE lower(username) = lower($1) LIMIT 1",
+      "SELECT id, username, password_hash, role, must_change_password FROM users WHERE lower(username) = lower($1) LIMIT 1",
       [String(username).trim()]
     );
     const user = rows[0];
@@ -62,6 +62,7 @@ export async function login(req, res, next) {
         name: displayName(user.username, user.role),
         role: user.role,
         status: "active",
+        mustChangePassword: user.must_change_password,
       },
       token: createSessionToken(user),
     });
@@ -98,8 +99,8 @@ export async function createUser(req, res, next) {
       return;
     }
     const { rows } = await getPool().query(
-      `INSERT INTO users (username, password_hash, role)
-       VALUES ($1, $2, $3)
+      `INSERT INTO users (username, password_hash, role, must_change_password)
+       VALUES ($1, $2, $3, TRUE)
        RETURNING id, username, role, created_at`,
       [String(username).trim().toLowerCase(), hashPassword(password), role]
     );
@@ -136,6 +137,7 @@ export async function updateUser(req, res, next) {
     if (password !== undefined) {
       values.push(hashPassword(String(password)));
       updates.push(`password_hash = $${values.length}`);
+      updates.push("must_change_password = TRUE");
     }
     if (role !== undefined) {
       values.push(role);
@@ -154,6 +156,32 @@ export async function updateUser(req, res, next) {
       return;
     }
     res.json(rows[0]);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function changeOwnPassword(req, res, next) {
+  try {
+    const { currentPassword, newPassword } = req.body || {};
+    if (!currentPassword || !newPassword || String(newPassword).length > 200) {
+      res.status(400).json({ error: "currentPassword and a valid newPassword are required" });
+      return;
+    }
+    const { rows } = await getPool().query(
+      "SELECT id, password_hash FROM users WHERE id = $1 LIMIT 1",
+      [req.user.sub]
+    );
+    const user = rows[0];
+    if (!user || !verifyPassword(String(currentPassword), user.password_hash)) {
+      res.status(401).json({ error: "كلمة المرور الحالية غير صحيحة" });
+      return;
+    }
+    await getPool().query(
+      "UPDATE users SET password_hash = $1, must_change_password = FALSE WHERE id = $2",
+      [hashPassword(String(newPassword)), req.user.sub]
+    );
+    res.json({ success: true, mustChangePassword: false });
   } catch (error) {
     next(error);
   }
