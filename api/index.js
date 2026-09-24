@@ -8,10 +8,15 @@ import questionRoutes from "../routes/questions.js";
 const app = express();
 const allowedOrigins = [
   "https://dsacms-frontend.vercel.app",
+  "https://mohamedalahadi.com",
+  "https://www.mohamedalahadi.com",
   "http://localhost:5500",
   "http://127.0.0.1:5500",
   ...(process.env.FRONTEND_ORIGIN || "").split(","),
 ]
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
   .map((origin) => origin.trim())
   .filter(Boolean);
 
