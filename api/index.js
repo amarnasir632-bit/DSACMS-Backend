@@ -17,9 +17,6 @@ const allowedOrigins = [
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-
 app.use(
   cors({
     origin(origin, callback) {
